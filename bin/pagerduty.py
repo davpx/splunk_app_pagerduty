@@ -174,8 +174,6 @@ def main():
 
     description = os.environ.get('SPLUNK_ARG_4', default_description)
     
-    event_data = ("Host: ".host.host_mount."\nClient: ".client."\nRunbook: ".runbook)
-    
     trigger_pagerduty(description, event_data, pagerduty_api_key)
 
 
