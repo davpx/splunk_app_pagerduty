@@ -172,7 +172,7 @@ def main():
     else:
         default_description = ''
 
-    description = os.environ.get('SPLUNK_ARG_5', default_description)
+    description = os.environ.get('SPLUNK_ARG_4', default_description)
 
     trigger_pagerduty(description, details, pagerduty_api_key)
 
