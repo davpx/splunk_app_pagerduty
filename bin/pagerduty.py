@@ -169,12 +169,18 @@ def main():
     if ('events' in details and details['events']
             and '_raw' in details['events'][0]):
         default_description = details['events'][0]['_raw']
+        host = details['events'][0]['host']
+        host_mount = details['events'][0]['host_mount']
+        client = details['events'][0]['client']
+        runbook = details['events'][0]['runbook']
     else:
         default_description = ''
 
     description = os.environ.get('SPLUNK_ARG_4', default_description)
-
-    trigger_pagerduty(description, details, pagerduty_api_key)
+    
+    event_data = ("Host: ".host.host_mount."\nClient: ".client."\nRunbook: ".runbook)
+    
+    trigger_pagerduty(description, event_data, pagerduty_api_key)
 
 
 if __name__ == '__main__':
