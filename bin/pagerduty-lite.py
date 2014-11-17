@@ -3,19 +3,24 @@ import json
 import requests
 
 
-SUBDOMAIN='pdt-dank'
-API_ACCESS_KEY='HjEs6A6KozribnKqm1tX'
+SUBDOMAIN='orionhealth'
+API_ACCESS_KEY=''
 
+def main():
+    description = os.environ.get('SPLUNK_ARG_4', default_description)
+    events = extract_events(os.environ.get('SPLUNK_ARG_8'))
+    
+    trigger_incident()
 
-def trigger_incident():
+def trigger_incident(description, events):
     headers = {
         'Authorization': 'Token token={0}'.format(API_ACCESS_KEY),
         'Content-type': 'application/json',
     }
     payload = json.dumps({
-      "service_key": "e05fd2270e2c4c028f3ae2388bbc09eb",
+      "service_key": "",
       "event_type": "trigger",
-      "description": "FAILURE for production/HTTP on machine srv01.acme.com",
+      "description": description,
       "client": "Sample Monitoring Service",
       "client_url": "https://monitoring.service.com",
       "details": {
