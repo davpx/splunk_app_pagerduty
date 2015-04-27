@@ -156,9 +156,9 @@ def main():
 
     pagerduty_api_key = get_pagerduty_api_key(config_file)
 
-    for env_key in os.environ:
-        if 'SPLUNK_ARG' in env_key:
-            details['env'][env_key] = os.environ.get(env_key)
+    #for env_key in os.environ:
+    #    if 'SPLUNK_ARG' in env_key:
+    #        details['env'][env_key] = os.environ.get(env_key)
 
     events = extract_events(os.environ.get('SPLUNK_ARG_8'))
 
