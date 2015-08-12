@@ -174,7 +174,7 @@ def main():
 
     description = os.environ.get('SPLUNK_ARG_5', default_description)
 
-    trigger_pagerduty(description, details, pagerduty_api_key)
+    trigger_pagerduty(description, details[0], pagerduty_api_key)
 
 
 if __name__ == '__main__':
