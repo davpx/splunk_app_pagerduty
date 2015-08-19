@@ -16,7 +16,6 @@ import csv
 import gzip
 import os
 import urllib2
-import hashlib
 
 try:
     import json
@@ -57,11 +56,11 @@ class PagerDuty(object):  # pylint: disable=R0903
         self.api_endpoint = '://'.join([('http', 'https')[https], EVENTS_URL])
         self.timeout = timeout
 
-    def trigger(self, description, incident_key=None, details=None):
+    def trigger(self, description, incident_key=None, details=None, client=None, client_url=None):
         """Triggers PagerDuty Incident"""
         return self._request(
             'trigger', description=description, incident_key=incident_key,
-            details=details)
+            details=details, client=client, client_url=client_url)
 
     def _request(self, event_type, **kwargs):
         """Handle PagerDuty API calls."""
@@ -105,8 +104,7 @@ def extract_events(events_file):
     return events
 
 
-def trigger_pagerduty(description, details, pagerduty_api_key,
-                      incident_key=None):
+def trigger_pagerduty(description, details, pagerduty_api_key, client=None, client_url=None, incident_key=None):
     """Triggers PagerDuty Incident with given params.
 
     @param description:
@@ -123,7 +121,7 @@ def trigger_pagerduty(description, details, pagerduty_api_key,
     @rtype: pagerduty.trigger object.
     """
     pagerduty = PagerDuty(pagerduty_api_key)
-    return pagerduty.trigger(description, incident_key, details)
+    return pagerduty.trigger(description, incident_key, details, client, client_url)
 
 
 def get_pagerduty_api_key(config_file):
@@ -173,9 +171,13 @@ def main():
     else:
         default_description = ''
 
-    description = os.environ.get('SPLUNK_ARG_5', default_description)
+    description = os.environ.get('SPLUNK_ARG_4', default_description)
 
-    trigger_pagerduty(description, details['events'][0], pagerduty_api_key)
+    client = "Splunk"
+    client_url = os.environ.get('SPLUNK_ARG_6')
+
+    for detail in details['events']:
+        trigger_pagerduty(description, detail, pagerduty_api_key, client, client_url)
 
 
 if __name__ == '__main__':
