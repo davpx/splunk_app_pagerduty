@@ -5,3 +5,4 @@ Thank you to the following contributors to this repository:
 * `Roger Hu <https://github.com/rogerhu>`_
 * `Gerardo Lopez-Fernandez <https://github.com/gerirgaudi>`_
 * `Michael Rabbitt <https://github.com/mrabbitt>`_
+* `David Olivas <https://github.com/davpx>`_

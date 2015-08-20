@@ -44,12 +44,14 @@ Phase II - Enable Alert
 #. Click 'Run a Script' and enter 'pagerduty.py', then click 'Save':
     .. image:: https://raw.githubusercontent.com/ampledata/splunk_app_pagerduty/develop/docs/run_a_script.png
     .. image:: https://raw.githubusercontent.com/ampledata/splunk_app_pagerduty/develop/docs/alert_has_been_saved.png
-#. Enjoy having Splunk Alerts delivered to PagerDuty!
+#. Add pd_key field to search results using a lookup or other function to use dynamic escalation
+ #. Enjoy having Splunk Alerts delivered to PagerDuty!
 
 
 Author
 ======
-`Greg Albrecht <https://github.com/ampledata>`_
+* `Greg Albrecht <https://github.com/ampledata>`_
+* `David Olivas <https://github.com/davpx>`_
 
 
 Contributors
@@ -59,7 +61,7 @@ See CONTRIBUTORS.rst
 
 Copyright
 =========
-Copyright 2014 OnBeep, Inc.
+Copyright 2014 OnBeep, Inc., 2015 Orion Health Inc.
 
 
 License
