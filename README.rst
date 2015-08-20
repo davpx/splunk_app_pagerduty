@@ -51,7 +51,7 @@ Phase II - Enable Alert
 Author
 ======
 * `Greg Albrecht <https://github.com/ampledata>`_
-* `David Olivas https://github.com/davpx>`_
+* `David Olivas <https://github.com/davpx>`_
 
 
 Contributors
