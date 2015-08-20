@@ -1,12 +1,13 @@
-#!python
+#!/usr/bin/env python
+# Set Splunk environment by running 'source <SPLUNK_HOME>/bin/setSplunkEnv' to test
 """PagerDuty Saved Search Alert Script for Splunk.
 
 Derived from @samuelks' Python Pagerduty Module
 https://github.com/samuel/python-pagerduty
 """
 
-__author__ = 'Greg Albrecht <gba@onbeep.com>'
-__copyright__ = 'Copyright 2014 OnBeep, Inc.'
+__author__ = 'Greg Albrecht <gba@onbeep.com>, David Olivas <david.olivas@orionhealth.com>'
+__copyright__ = 'Copyright 2014 OnBeep, Inc., 2015 Orion Health Inc.'
 __license__ = 'Apache License, Version 2.0'
 
 
@@ -16,6 +17,7 @@ import csv
 import gzip
 import os
 import urllib2
+import datetime
 
 try:
     import json
@@ -153,8 +155,6 @@ def main():
         os.environ['SPLUNK_HOME'], 'etc', 'apps', 'splunk_app_pagerduty',
         'local', 'pagerduty.conf')
 
-    pagerduty_api_key = get_pagerduty_api_key(config_file)
-
     for env_key in os.environ:
         if 'SPLUNK_ARG' in env_key:
             details['env'][env_key] = os.environ.get(env_key)
@@ -176,16 +176,33 @@ def main():
     client = "Splunk"
     client_url = os.environ.get('SPLUNK_ARG_6')
 
-    for detail in details['events']:
-        trigger_pagerduty(description, detail, pagerduty_api_key, client, client_url)
+    # Try to handle multi-line alerts
+    try:
+	for evt, val in enumerate(details['events']):
+		# Include pd_key in your alerts to escalate to more than one service
+        	pagerduty_api_key = val['pd_key']
+                trigger_pagerduty(description, val, pagerduty_api_key, client, client_url)
+    except Exception as exc:
+	# Log the reason why
+	time = datetime.datetime()
+	with open(os.path.join(
+                os.environ['SPLUNK_HOME'], 'var', 'log', 'splunk',
+                'pagerduty_err.log'), 'a') as pd_log:
+            pd_log.write("%s\n" % time % " - " % exc)
+        raise
+	# Otherwise just use the default one configured in the app
+        pagerduty_api_key = get_pagerduty_api_key(config_file)
+        for evt in details['events']:
+        	trigger_pagerduty(description, evt, pagerduty_api_key, client, client_url)
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as exc:
+	time = datetime.datetime()
         with open(os.path.join(
                 os.environ['SPLUNK_HOME'], 'var', 'log', 'splunk',
                 'pagerduty_err.log'), 'a') as pd_log:
-            pd_log.write("%s\n" % exc)
+            pd_log.write("%s\n" % time % " - " % exc)
         raise
