@@ -1,12 +1,13 @@
-#!python
+#!/usr/bin/env python
+# Set Splunk environment by running 'source <SPLUNK_HOME>/bin/setSplunkEnv' to test
 """PagerDuty Saved Search Alert Script for Splunk.
 
 Derived from @samuelks' Python Pagerduty Module
 https://github.com/samuel/python-pagerduty
 """
 
-__author__ = 'Greg Albrecht <gba@onbeep.com>'
-__copyright__ = 'Copyright 2014 OnBeep, Inc.'
+__author__ = 'Greg Albrecht <gba@onbeep.com>, David Olivas <david.olivas@orionhealth.com>'
+__copyright__ = 'Copyright 2014 OnBeep, Inc., 2015 Orion Health Inc.'
 __license__ = 'Apache License, Version 2.0'
 
 
@@ -16,7 +17,7 @@ import csv
 import gzip
 import os
 import urllib2
-import hashlib
+import datetime
 
 try:
     import json
@@ -57,11 +58,11 @@ class PagerDuty(object):  # pylint: disable=R0903
         self.api_endpoint = '://'.join([('http', 'https')[https], EVENTS_URL])
         self.timeout = timeout
 
-    def trigger(self, description, incident_key=None, details=None):
+    def trigger(self, description, incident_key=None, details=None, client=None, client_url=None):
         """Triggers PagerDuty Incident"""
         return self._request(
             'trigger', description=description, incident_key=incident_key,
-            details=details)
+            details=details, client=client, client_url=client_url)
 
     def _request(self, event_type, **kwargs):
         """Handle PagerDuty API calls."""
@@ -105,8 +106,7 @@ def extract_events(events_file):
     return events
 
 
-def trigger_pagerduty(description, details, pagerduty_api_key,
-                      incident_key=None):
+def trigger_pagerduty(description, details, pagerduty_api_key, client=None, client_url=None, incident_key=None):
     """Triggers PagerDuty Incident with given params.
 
     @param description:
@@ -123,7 +123,7 @@ def trigger_pagerduty(description, details, pagerduty_api_key,
     @rtype: pagerduty.trigger object.
     """
     pagerduty = PagerDuty(pagerduty_api_key)
-    return pagerduty.trigger(description, incident_key, details)
+    return pagerduty.trigger(description, incident_key, details, client, client_url)
 
 
 def get_pagerduty_api_key(config_file):
@@ -155,8 +155,6 @@ def main():
         os.environ['SPLUNK_HOME'], 'etc', 'apps', 'splunk_app_pagerduty',
         'local', 'pagerduty.conf')
 
-    pagerduty_api_key = get_pagerduty_api_key(config_file)
-
     for env_key in os.environ:
         if 'SPLUNK_ARG' in env_key:
             details['env'][env_key] = os.environ.get(env_key)
@@ -173,17 +171,38 @@ def main():
     else:
         default_description = ''
 
-    description = os.environ.get('SPLUNK_ARG_5', default_description)
+    description = os.environ.get('SPLUNK_ARG_4', default_description)
 
-    trigger_pagerduty(description, details['events'][0], pagerduty_api_key)
+    client = "Splunk"
+    client_url = os.environ.get('SPLUNK_ARG_6')
+
+    # Try to handle multi-line alerts
+    try:
+	for evt, val in enumerate(details['events']):
+		# Include pd_key in your alerts to escalate to more than one service
+        	pagerduty_api_key = val['pd_key']
+                trigger_pagerduty(description, val, pagerduty_api_key, client, client_url)
+    except Exception as exc:
+	# Log the reason why
+	time = datetime.datetime()
+	with open(os.path.join(
+                os.environ['SPLUNK_HOME'], 'var', 'log', 'splunk',
+                'pagerduty_err.log'), 'a') as pd_log:
+            pd_log.write("%s\n" % time % " - " % exc)
+        raise
+	# Otherwise just use the default one configured in the app
+        pagerduty_api_key = get_pagerduty_api_key(config_file)
+        for evt in details['events']:
+        	trigger_pagerduty(description, evt, pagerduty_api_key, client, client_url)
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as exc:
+	time = datetime.datetime()
         with open(os.path.join(
                 os.environ['SPLUNK_HOME'], 'var', 'log', 'splunk',
                 'pagerduty_err.log'), 'a') as pd_log:
-            pd_log.write("%s\n" % exc)
+            pd_log.write("%s\n" % time % " - " % exc)
         raise
